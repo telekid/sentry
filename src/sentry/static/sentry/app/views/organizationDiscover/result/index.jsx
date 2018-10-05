@@ -2,6 +2,7 @@ import React from 'react';
 import {browserHistory} from 'react-router';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import styled from 'react-emotion';
 import {Box, Flex} from 'grid-emotion';
 
 import SentryTypes from 'app/sentryTypes';
@@ -10,11 +11,13 @@ import Link from 'app/components/link';
 import BarChart from 'app/components/charts/barChart';
 import LineChart from 'app/components/charts/lineChart';
 import space from 'app/styles/space';
+import Button from 'app/components/button';
 
 import {addSuccessMessage, addErrorMessage} from 'app/actionCreators/indicator';
 
 import {getChartData, getChartDataByDay, downloadAsCsv, generateQueryName} from './utils';
 import {createSavedQuery} from '../utils';
+import Pagination from './pagination';
 import Table from './table';
 import {
   Heading,
@@ -32,6 +35,7 @@ export default class Result extends React.Component {
     data: PropTypes.object.isRequired,
     queryBuilder: PropTypes.object.isRequired,
     savedQuery: SentryTypes.DiscoverSavedQuery, // Provided if it's a saved search
+    onFetchPage: PropTypes.func,
   };
 
   constructor() {
@@ -91,7 +95,9 @@ export default class Result extends React.Component {
           tct('Successfully saved query [name]', {name: savedQuery.name})
         );
         browserHistory.push({
-          pathname: `/organizations/${organization.slug}/discover/saved/${savedQuery.id}/`,
+          pathname: `/organizations/${organization.slug}/discover/saved/${
+            savedQuery.id
+          }/`,
         });
       })
       .catch(err => {
@@ -206,7 +212,11 @@ export default class Result extends React.Component {
   }
 
   render() {
-    const {data: {baseQuery, byDayQuery}, savedQuery} = this.props;
+    const {
+      data: {baseQuery, byDayQuery},
+      savedQuery,
+    } = this.props;
+
     const {view} = this.state;
 
     const basicChartData = getChartData(baseQuery.data.data, baseQuery.query);
@@ -279,6 +289,13 @@ export default class Result extends React.Component {
             />
             {this.renderNote()}
           </ChartWrapper>
+        )}
+        {view === 'table' && (
+          <Pagination
+            previous={baseQuery.previous}
+            next={baseQuery.next}
+            onFetchPage={this.props.onFetchPage}
+          />
         )}
         {this.renderSummary()}
       </Box>
