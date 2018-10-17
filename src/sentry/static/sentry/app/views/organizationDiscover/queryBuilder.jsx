@@ -187,10 +187,11 @@ export default function createQueryBuilder(initial = {}, organization) {
     }
 
     return api
-      .requestPromise(endpoint, {isjqXHR: true, method: 'POST', data})
+      .requestPromise(endpoint, {includeAllArgs: true, method: 'POST', data})
       .then(res => {
-        res.data.pageLinks = res.jqXHR.getResponseHeader('Link');
-        return res.data;
+        let result = res[0];
+        result.pageLinks = res[2].getResponseHeader('Link');
+        return result;
       })
       .catch(() => {
         throw new Error(t('An error occurred'));
