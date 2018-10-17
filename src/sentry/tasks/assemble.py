@@ -56,18 +56,15 @@ def assemble_dif(project_id, name, checksum, chunks, **kwargs):
 
             indicate_success = True
 
-            # If we need to write a symcache we can use the
-            # `generate_symcache` method to attempt to write one.
-            # This way we can also capture down the error if we need
-            # to.
-            if dif.supports_symcache:
-                _, _, error = ProjectDebugFile.difcache.generate_symcache(
-                    project, dif, temp_file)
-                if error is not None:
-                    set_assemble_status(project, checksum, ChunkFileState.ERROR,
-                                        detail=error)
-                    indicate_success = False
-                    dif.delete()
+            # Try to generate caches from this DIF immediately. If this fails,
+            # we can capture the error and report it to the uploader. Also, we
+            # remove the file to prevent it from erroring again.
+            error = ProjectDebugFile.difcache.generate_caches(project, dif, temp_file)
+            if error is not None:
+                set_assemble_status(project, checksum, ChunkFileState.ERROR,
+                                    detail=error)
+                indicate_success = False
+                dif.delete()
 
             if indicate_success:
                 set_assemble_status(project, checksum, ChunkFileState.OK)
