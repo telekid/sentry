@@ -100,7 +100,7 @@ export default function createResultManager(queryBuilder) {
    */
   function reset() {
     for (let key in data) {
-      data[key] = {query: null, data: null};
+      data[key] = {query: null, data: null, next: null, previous: null};
     }
   }
 
