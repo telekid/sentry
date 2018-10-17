@@ -710,8 +710,8 @@ class DIFCache(object):
         # Now find all the cache files we already have
         found_ids = [d.id for d in six.itervalues(debug_files)]
         existing_caches = cls.objects \
-            .filter(project=project, dsym_file_id__in=found_ids) \
-            .select_related('cache_file', 'dsym_file__debug_id')
+            .filter(project=project, debug_file_id__in=found_ids) \
+            .select_related('cache_file', 'debug_file__debug_id')
 
         # Check for missing and out-of-date cache files. Outdated files are
         # removed to be re-created immediately.
@@ -719,7 +719,7 @@ class DIFCache(object):
         to_update = debug_files.copy()
         for cache_file in existing_caches:
             if cache_file.version == SYMCACHE_LATEST_VERSION:
-                debug_id = cache_file.dsym_file.debug_id
+                debug_id = cache_file.debug_file.debug_id
                 to_update.pop(debug_id, None)
                 caches.append((debug_id, cache_file, None))
             else:
@@ -806,7 +806,7 @@ class DIFCache(object):
                 return cls.objects.create(
                     project=debug_file.project,
                     cache_file=file,
-                    dsym_file=debug_file,
+                    debug_file=debug_file,
                     checksum=debug_file.file.checksum,
                     version=cache.file_format_version,
                 ), cache, None
@@ -818,7 +818,7 @@ class DIFCache(object):
         # upload that has already succeeded to compute a cache. The latter
         # case is extremely unlikely.
         cache_file = cls.objects \
-            .filter(project=debug_file.project, dsym_file_debug_id=debug_id) \
+            .filter(project=debug_file.project, debug_file__debug_id=debug_id) \
             .select_related('cache_file') \
             .order_by('-id') \
             .first()
